@@ -1,0 +1,171 @@
+# NER Training Configuration
+# Complete configuration for NER model training with all original script features
+
+model:
+  type: "scibert"  # "scibert" | "distilbert"
+  scibert_path: "files/scibert_scivocab_uncased"  # Use local model
+  distilbert_path: "files/distilbert-base-uncased"  # Use default: "distilbert-base-uncased"
+  max_len: 48  # Original: max_len = 48 (not 128)
+  dropout: 0.1
+  hidden_size: 768
+  lstm_hidden_dim: 256
+  lstm_num_layers: 2
+  lstm_dropout: 0.1
+  bidirectional: true
+  num_hidden_layers: 4
+  last_k_layers: 4
+
+# CRF Configuration
+crf:
+  constraint_mode: "full"  # "full" | "simple" | "none"
+  pos_aware_loss: true
+  pos_weight: 1
+  constraint_rules:
+    b_to_i_encouragement: true      # Rule 1: B-FOT -> I-FOT transitions
+    pos_noun_bias: true             # Rule 2: Noun POS tags favor FOT entities
+    pos_verb_penalty: true          # Rule 3: Verb POS tags penalize FOT entities
+    consecutive_penalty: true       # Rule 4: Penalize consecutive B-FOT tags
+    sentence_start_bonus: true      # Rule 5: Bonus for FOT at sentence start
+    long_entity_bonus: true         # Rule 6: Bonus for longer FOT entities
+    context_consistency: true       # Rule 7: Context-aware consistency
+
+# Loss Function Configuration
+loss:
+  primary: "combined"  # "crf" | "focal" | "combined"
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  fot_weight: 1.8
+  l2_lambda: 1e-6
+  use_focal: true
+  weights:
+    crf_loss: 0.5
+    focal_loss: 0.1  # focal_coef from original
+    constraint_loss: 0.5  # coef from original
+    l2_regularization: 1e-5
+  rule_loss:
+    w_oi: 0.9
+    w_bi_break: 0.5
+    w_i_bad_prev: 0.9
+    w_bad_pos: 0.8
+    w_no_seq_fot: 2.0
+    coef: 0.5
+    focal_coef: 0.1
+
+# Training Parameters (matching /src/train_NER.py exactly)
+training:
+  batch_size: 64  # Original: 64
+  epochs: 10  # Original: 10 (not 3)
+  learning_rate: 1e-5  # Original: 1e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.0
+  warmup_steps: 0
+  gradient_clip_norm: 1.0
+  accumulate_steps: 1
+  use_amp: true
+  early_stopping:
+    enabled: true
+    patience: 3  # Original: patience = 3
+    min_delta: 0.001
+    monitor: "val_f1"
+  scheduler:
+    type: "cosine"  # Original: CosineAnnealingWarmRestarts
+    T_0: 5  # Original: T_0=5
+    T_mult: 2  # Original: T_mult=2
+    eta_min: 1e-6  # Original: eta_min=1e-6
+
+# Dataset Configuration
+dataset:
+  train_path: null  # Set at runtime
+  val_path: null    # Set at runtime
+  test_path: null   # Set at runtime
+  add_pos_tags: true
+  pos_batch_size: 1000
+  pos_num_processes: 6
+  balanced_sampling:
+    enabled: false  # dynamic: false from original
+    initial_positive_ratio: 0.5
+    final_positive_ratio: 0.3
+    negative_ratio: 2
+
+# Data Processing
+preprocessing:
+  unicode_normalization: true
+  contraction_expansion: true
+  special_token_handling: true
+  max_token_length: 50
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "precision"
+    - "recall"
+    - "f1"
+    - "accuracy"
+    - "confusion_matrix"
+    - "fot_length_distribution"
+  class_names: ["O", "B-FOT", "I-FOT"]
+  average: "weighted"
+  zero_division: 0
+  eval_every_n_steps: 0  # From original
+
+# Visualization
+visualization:
+  enabled: true
+  plot_training: true
+  plot_confusion_matrix: true
+  plot_fot_distribution: true
+  save_plots: true
+  plot_interval: 1  # epochs
+  figsize: [12, 8]
+
+# Checkpointing
+checkpointing:
+  enabled: true
+  save_best_only: true
+  save_interval: 1  # epochs
+  max_checkpoints: 5
+  resume_from_checkpoint: null
+
+# Logging
+logging:
+  level: "INFO"
+  log_interval: 100  # steps
+  save_logs: true
+  wandb:
+    enabled: false
+    project: "fot-ner"
+    name: null  # Auto-generated
+
+# Hardware Configuration
+hardware:
+  device: "auto"  # "auto" | "cpu" | "cuda"
+  num_workers: 10
+  pin_memory: true
+  mixed_precision: true  # use_amp from original
+
+# Paths
+paths:
+  output_dir: "artifacts/models"
+  checkpoint_dir: "artifacts/checkpoints"
+  logs_dir: "artifacts/logs"
+  plots_dir: "artifacts/plots"
+
+# Tag Mappings
+tags:
+  tag2idx:
+    "O": 0
+    "B-FOT": 1
+    "I-FOT": 2
+  idx2tag:
+    0: "O"
+    1: "B-FOT"
+    2: "I-FOT"
+
+# Advanced Configuration
+advanced:
+  freeze_bert_layers: 0  # Number of BERT layers to freeze (0 = none)
+  gradient_accumulation_steps: 1
+  fp16: false
+  dataloader_pin_memory: true
+  seed: 42
+  deterministic: true

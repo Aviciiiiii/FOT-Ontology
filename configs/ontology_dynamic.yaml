@@ -1,0 +1,40 @@
+mag_nt_path: "data/raw/15.FieldsOfStudy.nt"
+merged_entities_path: "data/processed/l3_dedup.json"
+
+outputs:
+  mag_entities: "mag_entities.json"
+  third_entities: "third_entities.json"
+
+  mag1_tagged: "mag1_tagged_searched_sentences.json"
+  mag2_tagged: "mag2_tagged_searched_sentences.json"
+  fot1_tagged: "FOT1_tagged_searched_sentences.json"
+  fot2_tagged: "FOT2_tagged_searched_sentences.json"
+
+  mag1_clean: "cleaned_mag1_tagged_searched_sentences_with_entity.json"
+  mag2_clean: "cleaned_mag2_tagged_searched_sentences_with_entity.json"
+  fot1_clean: "cleaned_FOT1_tagged_searched_sentences_with_entity.json"
+  fot2_clean: "cleaned_FOT2_tagged_searched_sentences_with_entity.json"
+
+  ner_pretrain_model: "NER_pretrain_model_best.pth"
+  ner_finetune_model: "NER_finetune_model_best.pth"
+
+search:
+  backend: "dryrun"  # "google" | "local" | "dryrun"
+  google_api:
+    # Google API keys for search - can be set via environment variables
+    mag_api_key: null  # Set this or use GOOGLE_API_KEY environment variable
+    mag_cse_id: null   # Set this or use GOOGLE_CSE_ID environment variable
+    fot_api_key: null  # Can use same as mag_api_key or separate
+    fot_cse_id: null   # Can use same as mag_cse_id or separate
+  proxy:
+    enabled: false
+    address: "127.0.0.1:7778"  # SOCKS5 proxy address if needed
+  limits:
+    max_api_calls_per_day: 10000  # Limit API calls
+    start_index: 0              # Starting index for entity processing
+  mag: {topk: 10, lang: "en"}
+  fot: {topk: 10, lang: "en"}
+
+ner:
+  pretrain: {epochs: 1, batch_size: 4}
+  finetune: {epochs: 1, batch_size: 4}

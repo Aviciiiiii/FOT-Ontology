@@ -1,0 +1,57 @@
+# Configuration for Dynamic FOT Hierarchy Construction
+# Corresponds to original /src/hierarchy.py functionality
+
+# Input paths
+inputs:
+  # Dynamic layer FOT entities (from Stage 3 chunk merge)
+  fot_entities: "artifacts/chunks/merged/updated_fot_mapping.txt"
+
+  # Static layer entities (from Stage 1)
+  fot_layer_12: "data/interim/fot_level_12.txt"
+  fot_layer_3: "data/interim/fot_level_3.txt"
+
+# Output paths
+outputs:
+  # Dynamic layer with hierarchy (layer + parent info)
+  dynamic_hierarchy: "data/processed/new_fot_hierarchy_dynamic.txt"
+
+  # Complete FOT library (static + dynamic layers)
+  full_library: "data/processed/full_fot_library.txt"
+
+  # Embedding cache for incremental computation
+  embedding_cache: "artifacts/embeddings/hierarchy_embeddings.npz"
+
+# SciBERT embedding generation
+embeddings:
+  model_path: "files/scibert_scivocab_uncased"
+  batch_size: 64
+  use_gpu: false  # Set to true if GPU available
+
+# Clustering configuration
+clustering:
+  # UMAP dimensionality reduction
+  umap:
+    n_components: 100  # Target dimensionality
+    n_neighbors: 10    # Graph construction neighbors
+    min_dist: 0.1      # Minimum distance between points
+
+  # HDBSCAN clustering (or DBSCAN fallback on CPU)
+  hdbscan:
+    min_cluster_size: 10
+    min_samples: 7
+    cluster_size_threshold: 10000  # Recursively split clusters larger than this
+
+  use_gpu: false  # Use cuML GPU acceleration if available
+
+# Hierarchy configuration
+hierarchy:
+  n_layers: 3        # Number of dynamic layers (L4, L5, L6)
+  layer_ratio: [1, 2, 4]  # Distribution ratio (1/7 in L4, 2/7 in L5, 4/7 in L6)
+  id_offset: 11834   # ID offset for dynamic layer entities
+
+# Parent node linking
+parent_linking:
+  min_parents: 1     # Minimum parents per entity
+  max_parents: 5     # Maximum parents per entity
+  similarity_threshold: 0.86  # Minimum cosine similarity for valid parent
+  use_faiss: true    # Use FAISS for fast similarity search (fallback to cosine if unavailable)

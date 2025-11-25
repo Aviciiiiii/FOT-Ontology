@@ -1,0 +1,109 @@
+outputs:
+  blink_all_levels: "blink_candidates_l1l2l3.json"
+  blink_l3_only:    "blink_candidates_l3.json"
+  level2_seeds:     "level2_seeds.json"
+  gat_pred:         "gat_l3_predictions.json"
+  l3_with_parents:  "l3_with_parents.json"
+  l3_dedup:         "l3_dedup.json"
+  gat_model:        "gat_best.json"
+
+blink:
+  mode: "both"          # "both"|"123"|"3"
+  skip_if_exists: false # Skip BLINK if output files exist (can be overridden by --skip-blink)
+  faiss_index: null
+  index_path: null
+
+filter_augment:
+  mode: "index"             # "index" or "rules"
+  indexes_file: "indexes_to_keep.json"
+  include_rules: {}
+  exclude_rules: {}
+  manual_whitelist: [
+    "bread machine[A21]",
+    "processed meat[A22]",
+    "meat science[A23]",
+    "spice[A47]",
+    "game[A63]",
+    "chemical process[B01]",
+    "physical change[B01]",
+    "Electrostatics[B03]",
+    "high voltage[B03]",
+    "solid-solid separation[B07]",
+    "clay[B28]",
+    "rock[B28]",
+    "vehicle[B60]",
+    "road transport[B62]",
+    "liquid[B67]",
+    "match[C06]",
+    "wax[C11]",
+    "polishing[C09]",
+    "spirit[C12]",
+    "skin[C14]",
+    "hide (skin)[C14]",
+    "Fur[C14]",
+    "diffusion[C23]",
+    "Textile manufacturing[D02]",
+    "Laundry[D06]",
+    "Bulldozer[E02]",
+    "Architectural ironmongery[E05]",
+    "door[E06]",
+    "window[E06]",
+    "Roller shutter[E06]",
+    "Engine configuration[F01]",
+    "Wind turbine[F03]",
+    "Machine element[F16]",
+    "container[F17]",
+    "pipe[F17]",
+    "Steam generator[F22]",
+    "oven[F27]",
+    "Kirlian photography[G03]",
+    "control system[G05]",
+    "check[G07]"
+  ]
+  manual_blacklist: []
+
+gat:
+  mode: "gat"                    # "gat" for original GAT implementation, "mlp" for simplified MLP
+  encoder: "distilbert"          # "distilbert" or "random"
+  bert_model: "distilbert-base-uncased"
+
+  # Data sources
+  mag_file_path: data/raw/15.FieldsOfStudy.nt            # Path to MAG FieldsOfStudy.nt file, e.g. "data/external/15.FieldsOfStudy.nt"
+  level3_candidates_path: data/interim/blink_candidates_l3.json   # Path to Level 3 candidates JSON for prediction
+
+  # GAT-specific configuration
+  gat_config:
+    hidden_dim: 128              # Hidden dimension for GAT layers
+    max_peripheral_nodes: 100    # Maximum peripheral nodes in star graph
+    epochs: 2                    # Training epochs (1 for fast mode, 100 for full training)
+    lr: 0.001                    # Learning rate
+    batch_size: 32               # Batch size for training
+    test_size: 0.20              # Validation split ratio
+    class_weights: [1.0, 1.5]    # Class weights for loss function [negative, positive]
+
+  # Network crawling configuration
+  network:
+    enable_fetch: false          # Enable real Wikipedia page fetching
+    socks5: "127.0.0.1:7778"     # SOCKS5 proxy for Wikipedia access
+
+  # Legacy configuration for backward compatibility
+  train: {epochs: 2, lr: 1e-3, hidden_dim: 128, heads: 4}
+  predict: {topk: 5}
+
+parent_linker:
+  encoder: "distilbert"          # "distilbert" for DistilBERT features, "simple" for character encoding
+  knn_backend: "sklearn"         # "sklearn" for KNN search, "cosine" for simple similarity
+  bert_model: "distilbert-base-uncased"  # Model path or name for DistilBERT
+  k_neighbors: 1                 # Number of neighbors for KNN search
+  batch_size: 32                 # Batch size for DistilBERT encoding
+
+dedupe:
+  mode: "simple"                 # "simple" for original deduplication, "advanced" for parent-aware dedup
+  threshold: 0.6                 # threshold for advanced mode similarity merging
+
+floors:
+  l1: data/processed/floor_1.csv
+  l2: data/processed/floor_2.csv
+  l3: data/processed/floor_3.csv
+
+entity_jsonl: files/entity.jsonl

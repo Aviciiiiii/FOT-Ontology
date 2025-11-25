@@ -1,0 +1,11 @@
+data:
+  raw: data/raw
+  interim: data/interim
+  processed: data/processed
+artifacts:
+  models: artifacts/models
+  chunks: artifacts/chunks
+  exp: artifacts/exp
+  logs: artifacts/logs
+reports: reports
+docs: docs

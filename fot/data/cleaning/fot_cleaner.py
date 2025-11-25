@@ -1,0 +1,400 @@
+"""
+FOT data cleaning module with comprehensive text processing and entity tagging.
+
+This module implements the complete text cleaning pipeline for FOT (Field of Technology)
+data, including Unicode normalization, contraction expansion, Trie-based entity matching,
+and BIO tagging for Named Entity Recognition. It handles both Level 2 and third-party entities.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import string
+import unicodedata
+from pathlib import Path
+from typing import List, Tuple, Dict, Any
+from tqdm import tqdm
+
+from ...utils.logging import get_logger
+from ...utils.trie import build_fot_trie
+
+
+# Special cases that should always be preserved
+SPECIAL_CASES = {
+    "x ray", "x-ray", "t cell", "t-cell", "b cell", "b-cell", "3d printing",
+    "5g network", "e-commerce", "a/b testing", "c++", "r", "k-means", "n-gram",
+    "p value", "q factor", "s wave", "v chip", "h-index", "i beam", "o ring", "z score"
+}
+
+# Words that are allowed at the beginning of FOT entities
+ALLOWED_WORDS = {'and', 'of', 'for', 'in', 'to'}
+
+# Common prepositions and conjunctions that should be filtered
+COMMON_PREPOSITIONS = {
+    'with', 'on', 'at', 'from', 'by', 'about', 'as', 'into', 'like', 'through',
+    'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before',
+    'under', 'around', 'among'
+}
+
+COMMON_CONJUNCTIONS = {
+    'but', 'or', 'yet', 'so', 'nor', 'because', 'although', 'since', 'unless',
+    'while', 'where', 'if'
+}
+
+DISALLOWED_WORDS = COMMON_PREPOSITIONS | COMMON_CONJUNCTIONS
+
+# Special characters handling
+SPECIAL_CHARS = ['[', ']', '(', ')', '{', '}', '<', '>', '...', '…']
+REMOVE_CHARS = set(string.punctuation) - set(SPECIAL_CHARS) - {"'"}
+
+# Contractions mapping
+CONTRACTIONS = {
+    "'s": "is",
+    "n't": "not",
+    "'m": "am",
+    "'re": "are",
+    "'ve": "have",
+    "'ll": "will"
+}
+
+
+def normalize_unicode(text: str) -> str:
+    """Normalize Unicode characters to ASCII equivalents.
+
+    Args:
+        text: Input text with potential Unicode characters
+
+    Returns:
+        Text with normalized characters
+    """
+    text = unicodedata.normalize('NFKD', text)
+    text = text.encode('ascii', 'ignore').decode('ascii')
+
+    replacements = {
+        '\u2026': '...',  # Ellipsis
+        '\u2122': '(TM)',  # Trademark symbol
+        '\u00ae': '(R)',   # Registered trademark
+        '\u2019': "'",     # Right single quotation mark
+        '\u2018': "'",     # Left single quotation mark
+        '\u201c': '"',     # Left double quotation mark
+        '\u201d': '"',     # Right double quotation mark
+        '\u2013': '-',     # En dash
+        '\u2014': '--',    # Em dash
+    }
+
+    for unicode_char, replacement in replacements.items():
+        text = text.replace(unicode_char, replacement)
+
+    return text
+
+
+def clean_text(text: str) -> str:
+    """Clean and normalize text for processing.
+
+    Args:
+        text: Raw input text
+
+    Returns:
+        Cleaned and normalized text
+    """
+    # Remove URLs
+    text = re.sub(r'http\S+', '', text)
+
+    # Normalize Unicode characters
+    text = normalize_unicode(text)
+
+    # Remove specified punctuation
+    for char in REMOVE_CHARS:
+        text = text.replace(char, ' ')
+
+    # Ensure special characters are surrounded by spaces
+    for char in SPECIAL_CHARS:
+        text = text.replace(char, f' {char} ')
+
+    # Replace multiple consecutive dots with a single space
+    text = re.sub(r'\.{2,}', ' ', text)
+
+    # Remove excess whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
+
+
+def expand_contractions(tokens: List[str]) -> List[str]:
+    """Expand English contractions in token list.
+
+    Args:
+        tokens: List of tokens that may contain contractions
+
+    Returns:
+        List of tokens with contractions expanded
+    """
+    expanded_tokens = []
+    i = 0
+
+    while i < len(tokens):
+        if i < len(tokens) - 1 and tokens[i] == "'" and tokens[i+1].lower() == "s":
+            expanded_tokens.append("is")
+            i += 2
+        elif tokens[i] in CONTRACTIONS:
+            expanded_tokens.append(CONTRACTIONS[tokens[i]])
+            i += 1
+        elif i < len(tokens) - 1 and tokens[i] + tokens[i+1] in CONTRACTIONS:
+            expanded_tokens.append(CONTRACTIONS[tokens[i] + tokens[i+1]])
+            i += 2
+        else:
+            expanded_tokens.append(tokens[i])
+            i += 1
+
+    return expanded_tokens
+
+
+def should_keep_fot(fot_tokens: List[str]) -> bool:
+    """Determine if a FOT entity should be kept based on filtering rules.
+
+    Args:
+        fot_tokens: List of tokens forming the FOT entity
+
+    Returns:
+        True if the FOT should be kept, False otherwise
+    """
+    fot = " ".join(fot_tokens).lower()
+
+    # Check if it's a special case
+    if fot in SPECIAL_CASES:
+        return True
+
+    # Check if FOT starts with disallowed words
+    if fot_tokens[0].lower() in ALLOWED_WORDS:
+        return False
+
+    # Check if FOT contains disallowed words
+    for token in fot_tokens:
+        if token.lower() in DISALLOWED_WORDS:
+            return False
+
+    # Check FOT length
+    if len(fot_tokens) < 2:
+        return False
+
+    return True
+
+
+def remove_duplicates(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Remove duplicate entries from the dataset.
+
+    Args:
+        data: List of data items with 'tokens' and 'tags' fields
+
+    Returns:
+        List with duplicates removed
+    """
+    seen = set()
+    unique_data = []
+
+    for item in data:
+        # Use frozenset to represent dictionary, ignoring key order
+        item_set = frozenset((k, tuple(v) if isinstance(v, list) else v) for k, v in item.items())
+        if item_set not in seen:
+            seen.add(item_set)
+            unique_data.append(item)
+
+    return unique_data
+
+
+def clean_dataset(data: List[Dict[str, Any]], fot_trie) -> List[Dict[str, Any]]:
+    """Apply complete cleaning pipeline to a dataset.
+
+    Args:
+        data: List of data items with 'tokens' and optional 'tags' fields
+        fot_trie: Trie structure containing FOT entities for matching
+
+    Returns:
+        Cleaned dataset with proper BIO tagging
+    """
+    cleaned_data = []
+    positive_samples = 0
+    negative_samples = 0
+
+    for item in tqdm(data, desc="Cleaning FOT dataset"):
+        tokens = item.get('tokens', [])
+
+        # Clean and normalize text
+        cleaned_text = clean_text(" ".join(tokens))
+        cleaned_tokens = cleaned_text.split()
+        expanded_tokens = expand_contractions(cleaned_tokens)
+
+        # Initialize output tokens and tags
+        final_tokens = []
+        final_tags = []
+
+        i = 0
+        has_fot = False
+
+        while i < len(expanded_tokens):
+            # Find the longest matching FOT entity
+            max_match = None
+            max_match_length = 0
+
+            for j in range(i, len(expanded_tokens)):
+                potential_fot = " ".join(expanded_tokens[i:j+1]).lower()
+                fot_match = fot_trie.search_exact(potential_fot.split())
+                if fot_match and len(potential_fot.split()) > max_match_length:
+                    max_match = fot_match
+                    max_match_length = len(potential_fot.split())
+
+            if max_match:
+                fot_tokens = expanded_tokens[i:i+max_match_length]
+                if should_keep_fot(fot_tokens):
+                    # Add B-FOT and I-FOT tags
+                    for j in range(max_match_length):
+                        final_tokens.append(expanded_tokens[i+j])
+                        final_tags.append('B-FOT' if j == 0 else 'I-FOT')
+                    has_fot = True
+                else:
+                    # Mark as O (outside)
+                    for j in range(max_match_length):
+                        final_tokens.append(expanded_tokens[i+j])
+                        final_tags.append('O')
+                i += max_match_length
+            else:
+                final_tokens.append(expanded_tokens[i])
+                final_tags.append('O')
+                i += 1
+
+        if has_fot:
+            positive_samples += 1
+        else:
+            negative_samples += 1
+
+        cleaned_data.append({"tokens": final_tokens, "tags": final_tags})
+
+    # Remove duplicates
+    cleaned_data = remove_duplicates(cleaned_data)
+
+    return cleaned_data
+
+
+def _load_list(path: str) -> List[dict]:
+    """Load data from JSON file."""
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _load_level2_entities(entities_path: str) -> List[str]:
+    """Load Level 2 entities from file.
+
+    Args:
+        entities_path: Path to Level 2 entities file
+
+    Returns:
+        List of entity names
+    """
+    try:
+        if not Path(entities_path).exists():
+            return []
+
+        data = json.loads(Path(entities_path).read_text(encoding="utf-8"))
+
+        if isinstance(data, list):
+            if data and isinstance(data[0], dict) and 'name' in data[0]:
+                # Handle list of dicts with 'name' field
+                return [item['name'] for item in data if isinstance(item, dict) and 'name' in item]
+            elif data and isinstance(data[0], str):
+                # Handle list of strings
+                return data
+
+        return []
+    except Exception:
+        return []
+
+
+def _load_third_entities(entities_path: str) -> List[str]:
+    """Load third-party entities from file.
+
+    Args:
+        entities_path: Path to third-party entities file
+
+    Returns:
+        List of entity names
+    """
+    try:
+        if not Path(entities_path).exists():
+            return []
+
+        data = json.loads(Path(entities_path).read_text(encoding="utf-8"))
+
+        if isinstance(data, list):
+            # Handle both list of strings and nested structures
+            entities = []
+            for item in data:
+                if isinstance(item, str):
+                    entities.append(item)
+                elif isinstance(item, dict):
+                    # Handle nested structures with potential level2/level3 keys
+                    if 'name' in item:
+                        entities.append(item['name'])
+                    # Handle nested level2/level3 structures
+                    for key in ['level2', 'level3']:
+                        if key in item and isinstance(item[key], list):
+                            entities.extend(item[key])
+            return entities
+
+        return []
+    except Exception:
+        return []
+
+
+def clean_fot(in1: str, in2: str, entities1: str, entities2: str, out1: str, out2: str) -> Tuple[str, str]:
+    """Clean FOT datasets with complete text processing pipeline.
+
+    This function handles both Level 2 entities (typically from entities1) and
+    third-party entities (from entities2), combining them for comprehensive
+    entity matching during the cleaning process.
+
+    Args:
+        in1: Path to first input dataset
+        in2: Path to second input dataset
+        entities1: Path to Level 2 entities (or MAG entities for compatibility)
+        entities2: Path to third-party entities
+        out1: Path for first output dataset
+        out2: Path for second output dataset
+
+    Returns:
+        Tuple of output file paths
+    """
+    logger = get_logger("fot_cleaner")
+
+    # Load data
+    s1 = _load_list(in1)
+    s2 = _load_list(in2)
+
+    # Load entities from both sources
+    level2_entities = _load_level2_entities(entities1)
+    third_entities = _load_third_entities(entities2)
+
+    # Combine all entities
+    all_fot_entities = list(set(level2_entities + third_entities))
+
+    # Build Trie for efficient matching
+    fot_trie = build_fot_trie(all_fot_entities)
+
+    logger.info(f"Loaded {len(level2_entities)} Level 2 entities, {len(third_entities)} third entities")
+    logger.info(f"Total {len(all_fot_entities)} unique FOT entities for matching")
+
+    # Clean datasets
+    c1 = clean_dataset(s1, fot_trie)
+    c2 = clean_dataset(s2, fot_trie)
+
+    # Write outputs
+    p1 = Path(out1)
+    p2 = Path(out2)
+    p1.parent.mkdir(parents=True, exist_ok=True)
+    p2.parent.mkdir(parents=True, exist_ok=True)
+
+    p1.write_text(json.dumps(c1, ensure_ascii=False, indent=2), encoding="utf-8")
+    p2.write_text(json.dumps(c2, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    logger.info("FOT cleaned: in1=%d in2=%d -> out1=%d out2=%d", len(s1), len(s2), len(c1), len(c2))
+
+    return str(p1), str(p2)

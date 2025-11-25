@@ -1,0 +1,270 @@
+# NER Model Comparison Experiment Configuration
+# Comprehensive comparison of 9+ NER models for FOT extraction
+
+experiment:
+  name: "ner_comparison"
+  description: "Comprehensive NER model comparison for patent FOT extraction"
+
+  # Output paths
+  output_dir: "artifacts/exp/ner_comparison"
+  results_file: "reports/ner_comparison_results.json"
+
+  # Random seed for reproducibility
+  seed: 42
+
+# Data configuration
+data:
+  # MAG data files (for pretraining and baseline experiments)
+  mag1_clean: "data/processed/cleaned_mag1_tagged_searched_sentences_with_entity.json"
+  mag2_clean: "data/processed/cleaned_mag2_tagged_searched_sentences_with_entity.json"
+
+  # FOT data files (for fine-tuning pretrained models)
+  fot1_clean: "data/processed/cleaned_FOT1_tagged_searched_sentences_with_entity.json"
+  fot2_clean: "data/processed/cleaned_FOT2_tagged_searched_sentences_with_entity.json"
+
+  # FOT entities for balanced sampling
+  mag_entities: "data/interim/mag_entities.json"
+  third_entities: "data/interim/third_entities.json"
+
+  # Optional: limit dataset size for testing
+  sample_size: null  # null = use all data, or set to number like 10000
+
+  # Data loading
+  max_len: 48
+  batch_size: 64
+
+# Training configuration
+training:
+  num_epochs: 20
+  learning_rate: 5e-5
+
+  # Optimizer
+  optimizer: "AdamW"
+  weight_decay: 0.01
+
+  # Scheduler
+  scheduler: "CosineAnnealingWarmRestarts"
+  T_0: 5
+  T_mult: 2
+  eta_min: 1e-6
+
+  # Training optimizations
+  gradient_clip: 1.0
+  use_amp: true  # Automatic Mixed Precision
+  accumulate_steps: 1
+
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 3
+    monitor: "f1"  # or "loss"
+
+# Model configurations
+models:
+  # ========================================
+  # PatentNER (Full Model)
+  # ========================================
+  patentner_full:
+    enabled: true
+    type: "patentner"
+    description: "Full PatentNER with all features"
+
+    # Model architecture
+    pretrained_model: "files/scibert_scivocab_uncased"
+    lstm_hidden_dim: 256
+    num_hidden_layers: 4
+    last_k_layers: 4
+
+    # Loss components
+    use_crf: true
+    use_focal: true
+    use_custom_crf: true
+    use_l2: true
+    use_pos_weights: true
+
+    # Loss weights
+    crf_weight: 0.5
+    focal_weight: 0.1
+    custom_weight: 0.5
+    l2_lambda: 1e-6
+    fot_weight: 2.0  # INCREASED from 1.8 to 2.0 for better recall (will be dynamically adjusted)
+
+    # Load from pretrained checkpoint (optional)
+    pretrain_checkpoint: null  # "artifacts/models/NER_pretrain_best.pth"
+
+  # ========================================
+  # PatentNER Ablations
+  # ========================================
+  patentner_no_pos:
+    enabled: true
+    type: "patentner"
+    description: "PatentNER without POS-aware loss"
+    pretrained_model: "files/scibert_scivocab_uncased"
+    lstm_hidden_dim: 256
+    num_hidden_layers: 4
+    use_pos_weights: false  # Disabled
+    use_crf: true
+    use_focal: true
+    use_custom_crf: true
+    use_l2: true
+
+  patentner_no_custom_crf:
+    enabled: true
+    type: "patentner"
+    description: "PatentNER without custom CRF constraints"
+    pretrained_model: "files/scibert_scivocab_uncased"
+    lstm_hidden_dim: 256
+    num_hidden_layers: 4
+    use_pos_weights: true
+    use_crf: true
+    use_focal: true
+    use_custom_crf: false  # Disabled
+    use_l2: true
+
+  patentner_no_focal:
+    enabled: true
+    type: "patentner"
+    description: "PatentNER without focal loss"
+    pretrained_model: "files/scibert_scivocab_uncased"
+    lstm_hidden_dim: 256
+    num_hidden_layers: 4
+    use_pos_weights: true
+    use_crf: true
+    use_focal: false  # Disabled
+    use_custom_crf: true
+    use_l2: true
+
+  patentner_no_l2:
+    enabled: true
+    type: "patentner"
+    description: "PatentNER without L2 regularization"
+    pretrained_model: "files/scibert_scivocab_uncased"
+    lstm_hidden_dim: 256
+    num_hidden_layers: 4
+    use_pos_weights: true
+    use_crf: true
+    use_focal: true
+    use_custom_crf: true
+    use_l2: false  # Disabled
+    l2_lambda: 0.0
+
+  patentner_pretrained:
+    enabled: true  # Set to true if you have pretrained model
+    type: "patentner"
+    description: "PatentNER initialized from MAG pretraining"
+    pretrained_model: "files/scibert_scivocab_uncased"
+    lstm_hidden_dim: 256
+    num_hidden_layers: 4
+    # Load pretrained weights
+    pretrain_checkpoint: "artifacts/models/NER_pretrain_best.pth"
+    use_pos_weights: true
+    use_crf: true
+    use_focal: true
+    use_custom_crf: true
+    use_l2: true
+
+  # ========================================
+  # Baseline Models
+  # ========================================
+  bilstm_crf:
+    enabled: true
+    type: "bilstm"
+    description: "Baseline BiLSTM-CRF"
+    vocab_size: 30522  # BERT vocab size (for embedding compatibility)
+    embedding_dim: 100
+    hidden_dim: 256
+    fot_weight: 1.8
+
+  bert_crf:
+    enabled: true
+    type: "bert"
+    description: "BERT-base + CRF"
+    pretrained_model: "files/bert-large-uncased"
+    fot_weight: 1.8
+
+  scibert_crf:
+    enabled: true
+    type: "scibert"
+    description: "SciBERT + CRF"
+    pretrained_model: "files/scibert_scivocab_uncased"
+    fot_weight: 1.8
+
+  # ========================================
+  # Commercial NER Systems (Optional)
+  # ========================================
+  spacy_ner:
+    enabled: false  # Requires spacy installation
+    type: "spacy"
+    description: "SpaCy pretrained NER"
+    # Automatically uses en_core_web_lg (or md/sm as fallback)
+
+  stanford_ner:
+    enabled: false  # Requires Stanford CoreNLP + Java
+    type: "stanford"
+    description: "Stanford CoreNLP NER"
+    # Requires stanford-ner JAR and models in stanford-ner/ directory
+
+# Evaluation metrics
+metrics:
+  # Standard sequence labeling metrics
+  - "precision"
+  - "recall"
+  - "f1"
+  - "loss"
+
+  # FOT-specific metrics
+  - "fot_precision"
+  - "fot_recall"
+  - "fot_f1"
+
+  # Additional metrics from original script
+  - "b_prec"       # B-tag precision
+  - "p_match"      # Phrase-level match rate
+  - "type_cons"    # Type consistency
+
+  # Performance metrics
+  - "speed"        # Samples per second
+
+  # Analysis
+  - "confusion_matrix"
+  - "fot_length_distribution"
+
+# POS tag weights (for models using POS features)
+pos_weights:
+  NOUN: 1.3
+  PROPN: 1.3
+  ADJ: 1.1
+  VERB: 0.9
+  NUM: 0.8
+  ADP: 0.6
+  DET: 0.5
+  CCONJ: 0.6
+  PART: 0.6
+  PRON: 0.5
+  AUX: 0.5
+  ADV: 0.7
+  SCONJ: 0.6
+  INTJ: 0.4
+  SYM: 0.7
+  X: 0.8
+  PAD: 1.0
+
+# Tag mappings
+tags:
+  tag2idx:
+    O: 0
+    B-FOT: 1
+    I-FOT: 2
+
+# Logging
+logging:
+  level: "INFO"
+  log_file: "logs/ner_comparison.log"
+
+# Visualization
+visualization:
+  enabled: true
+  plot_training_curves: true
+  plot_confusion_matrices: true
+  save_plots: true
+  plot_dir: "artifacts/exp/ner_comparison/plots"

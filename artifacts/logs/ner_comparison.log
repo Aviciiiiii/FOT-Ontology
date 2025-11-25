@@ -1,0 +1,212 @@
+2025-10-26 09:19:43 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:19:43 | INFO | ner_comparison | NER Model Comparison Experiments
+2025-10-26 09:19:43 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:19:44 | INFO | ner_comparison | Device: cuda
+2025-10-26 09:19:44 | INFO | ner_comparison | Loading data from data/processed
+2025-10-26 09:19:44 | INFO | ner_comparison | Loading data from JSON files...
+2025-10-26 09:19:48 | INFO | ner_comparison | Loaded 530448 sequences from MAG data
+2025-10-26 09:19:48 | INFO | ner_comparison | Loaded 13560 FOT entities for balanced sampling
+2025-10-26 09:19:48 | INFO | ner_comparison | Performing entity-level train/val/test split to prevent data leakage...
+2025-10-26 09:19:48 | INFO | ner_comparison | ✓ Found entity field 'source_id' - using entity-level split
+2025-10-26 09:19:49 | INFO | ner_comparison | Applying balanced sampling to train/val/test splits...
+2025-10-26 09:47:02 | INFO | ner_comparison | After balancing: Train=141131, Val=16827, Test=18859 samples
+2025-10-26 09:47:02 | INFO | ner_comparison | Creating NER datasets...
+2025-10-26 09:47:40 | INFO | ner_comparison | Train: 141131, Val: 16827, Test: 18859
+2025-10-26 09:47:40 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 09:47:40 | INFO | ner_comparison | Model: patentNER
+2025-10-26 09:47:40 | INFO | ner_comparison | Description: Full PatentNER with all features
+2025-10-26 09:47:40 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:47:40 | INFO | ner_comparison | Creating PatentNER model...
+2025-10-26 09:47:42 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/patentNER_best_model.pth
+2025-10-26 09:47:42 | INFO | ner_comparison |   Loading weights and skipping training for patentNER...
+2025-10-26 09:47:43 | INFO | ner_comparison |   Loaded model with validation F1: 0.7162
+2025-10-26 09:47:43 | INFO | ner_comparison | Evaluating patentNER...
+2025-10-26 09:49:02 | INFO | ner_comparison | patentNER Results:
+2025-10-26 09:49:02 | INFO | ner_comparison |   F1: 0.7350, Precision: 0.8101, Recall: 0.6727
+2025-10-26 09:49:02 | INFO | ner_comparison |   FOT F1: 0.7598, FOT Precision: 0.8413, FOT Recall: 0.6927
+2025-10-26 09:49:02 | INFO | ner_comparison |   Speed: 246.88 samples/sec
+2025-10-26 09:49:02 | INFO | ner_comparison | ✓ patentNER complete: F1=0.7350, Precision=0.8101, Recall=0.6727
+2025-10-26 09:49:02 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 09:49:02 | INFO | ner_comparison | Model: patentNERnopos
+2025-10-26 09:49:02 | INFO | ner_comparison | Description: Without POS-aware loss
+2025-10-26 09:49:02 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:49:02 | INFO | ner_comparison | Creating PatentNER model...
+2025-10-26 09:49:02 | INFO | ner_comparison | Disabling POS-aware weights (keep FOT boost)
+2025-10-26 09:49:02 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/patentNERnopos_best_model.pth
+2025-10-26 09:49:02 | INFO | ner_comparison |   Loading weights and skipping training for patentNERnopos...
+2025-10-26 09:49:03 | INFO | ner_comparison |   Loaded model with validation F1: 0.7089
+2025-10-26 09:49:03 | INFO | ner_comparison | Evaluating patentNERnopos...
+2025-10-26 09:50:21 | INFO | ner_comparison | patentNERnopos Results:
+2025-10-26 09:50:21 | INFO | ner_comparison |   F1: 0.7261, Precision: 0.7823, Recall: 0.6775
+2025-10-26 09:50:21 | INFO | ner_comparison |   FOT F1: 0.7594, FOT Precision: 0.8258, FOT Recall: 0.7029
+2025-10-26 09:50:21 | INFO | ner_comparison |   Speed: 247.90 samples/sec
+2025-10-26 09:50:21 | INFO | ner_comparison | ✓ patentNERnopos complete: F1=0.7261, Precision=0.7823, Recall=0.6775
+2025-10-26 09:50:21 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 09:50:21 | INFO | ner_comparison | Model: patentNER no customCRF
+2025-10-26 09:50:21 | INFO | ner_comparison | Description: Without custom CRF constraints
+2025-10-26 09:50:21 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:50:21 | INFO | ner_comparison | Creating PatentNER model...
+2025-10-26 09:50:22 | INFO | ner_comparison | Disabling CustomCRF entirely - replacing with StandardCRF
+2025-10-26 09:50:22 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/patentNER no customCRF_best_model.pth
+2025-10-26 09:50:22 | INFO | ner_comparison |   Loading weights and skipping training for patentNER no customCRF...
+2025-10-26 09:50:23 | INFO | ner_comparison |   Loaded model with validation F1: 0.6573
+2025-10-26 09:50:23 | INFO | ner_comparison | Evaluating patentNER no customCRF...
+2025-10-26 09:50:49 | INFO | ner_comparison | patentNER no customCRF Results:
+2025-10-26 09:50:49 | INFO | ner_comparison |   F1: 0.6781, Precision: 0.7297, Recall: 0.6333
+2025-10-26 09:50:49 | INFO | ner_comparison |   FOT F1: 0.7426, FOT Precision: 0.8209, FOT Recall: 0.6780
+2025-10-26 09:50:49 | INFO | ner_comparison |   Speed: 784.00 samples/sec
+2025-10-26 09:50:49 | INFO | ner_comparison | ✓ patentNER no customCRF complete: F1=0.6781, Precision=0.7297, Recall=0.6333
+2025-10-26 09:50:49 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 09:50:49 | INFO | ner_comparison | Model: patentNERnofocalloss
+2025-10-26 09:50:49 | INFO | ner_comparison | Description: Without focal loss
+2025-10-26 09:50:49 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:50:49 | INFO | ner_comparison | Creating PatentNER model...
+2025-10-26 09:50:49 | INFO | ner_comparison | Disabling focal loss
+2025-10-26 09:50:49 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/patentNERnofocalloss_best_model.pth
+2025-10-26 09:50:49 | INFO | ner_comparison |   Loading weights and skipping training for patentNERnofocalloss...
+2025-10-26 09:50:50 | INFO | ner_comparison |   Loaded model with validation F1: 0.7171
+2025-10-26 09:50:50 | INFO | ner_comparison | Evaluating patentNERnofocalloss...
+2025-10-26 09:52:09 | INFO | ner_comparison | patentNERnofocalloss Results:
+2025-10-26 09:52:09 | INFO | ner_comparison |   F1: 0.7285, Precision: 0.7512, Recall: 0.7072
+2025-10-26 09:52:09 | INFO | ner_comparison |   FOT F1: 0.7622, FOT Precision: 0.7908, FOT Recall: 0.7356
+2025-10-26 09:52:09 | INFO | ner_comparison |   Speed: 247.14 samples/sec
+2025-10-26 09:52:09 | INFO | ner_comparison | ✓ patentNERnofocalloss complete: F1=0.7285, Precision=0.7512, Recall=0.7072
+2025-10-26 09:52:09 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 09:52:09 | INFO | ner_comparison | Model: patentNERnol2
+2025-10-26 09:52:09 | INFO | ner_comparison | Description: Without L2 regularization
+2025-10-26 09:52:09 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:52:09 | INFO | ner_comparison | Creating PatentNER model...
+2025-10-26 09:52:09 | INFO | ner_comparison | Disabling L2 regularization
+2025-10-26 09:52:09 | INFO | ner_comparison | Creating optimizer with weight_decay=0.0 (L2 disabled)
+2025-10-26 09:52:09 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/patentNERnol2_best_model.pth
+2025-10-26 09:52:09 | INFO | ner_comparison |   Loading weights and skipping training for patentNERnol2...
+2025-10-26 09:52:10 | INFO | ner_comparison |   Loaded model with validation F1: 0.7243
+2025-10-26 09:52:10 | INFO | ner_comparison | Evaluating patentNERnol2...
+2025-10-26 09:53:28 | INFO | ner_comparison | patentNERnol2 Results:
+2025-10-26 09:53:28 | INFO | ner_comparison |   F1: 0.7346, Precision: 0.7885, Recall: 0.6877
+2025-10-26 09:53:28 | INFO | ner_comparison |   FOT F1: 0.7603, FOT Precision: 0.8177, FOT Recall: 0.7105
+2025-10-26 09:53:28 | INFO | ner_comparison |   Speed: 247.86 samples/sec
+2025-10-26 09:53:28 | INFO | ner_comparison | ✓ patentNERnol2 complete: F1=0.7346, Precision=0.7885, Recall=0.6877
+2025-10-26 09:53:28 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 09:53:28 | INFO | ner_comparison | Model: patentNERpretrained
+2025-10-26 09:53:28 | INFO | ner_comparison | Description: With MAG pretraining
+2025-10-26 09:53:28 | INFO | ner_comparison | ================================================================================
+2025-10-26 09:53:28 | INFO | ner_comparison | Loading FOT data for fine-tuning pretrained model...
+2025-10-26 09:53:28 | INFO | ner_comparison | Loading data from JSON files...
+2025-10-26 09:53:36 | INFO | ner_comparison | Loaded 675925 sequences from MAG data
+2025-10-26 09:53:36 | INFO | ner_comparison | Loaded 11997 FOT entities for balanced sampling
+2025-10-26 09:53:36 | INFO | ner_comparison | Performing entity-level train/val/test split to prevent data leakage...
+2025-10-26 09:53:36 | INFO | ner_comparison | ✓ Found entity field 'source_id' - using entity-level split
+2025-10-26 09:53:37 | INFO | ner_comparison | Applying balanced sampling to train/val/test splits...
+2025-10-26 10:45:40 | INFO | ner_comparison | After balancing: Train=257177, Val=31536, Test=32054 samples
+2025-10-26 10:45:40 | INFO | ner_comparison | Creating NER datasets...
+2025-10-26 10:46:48 | INFO | ner_comparison | FOT Data - Train: 257177, Val: 31536, Test: 32054
+2025-10-26 10:46:48 | INFO | ner_comparison | Creating PatentNER model...
+2025-10-26 10:46:48 | INFO | ner_comparison | Loading pretrained weights from reports/models/patentNER_best_model.pth
+2025-10-26 10:46:49 | INFO | ner_comparison | Loaded pretrained model from reports/models/patentNER_best_model.pth
+2025-10-26 10:46:50 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/patentNERpretrained_best_model.pth
+2025-10-26 10:46:50 | INFO | ner_comparison |   Loading weights and skipping training for patentNERpretrained...
+2025-10-26 10:46:50 | INFO | ner_comparison |   Loaded model with validation F1: 0.9544
+2025-10-26 10:46:50 | INFO | ner_comparison | Evaluating patentNERpretrained...
+2025-10-26 10:49:12 | INFO | ner_comparison | patentNERpretrained Results:
+2025-10-26 10:49:12 | INFO | ner_comparison |   F1: 0.9534, Precision: 0.9611, Recall: 0.9457
+2025-10-26 10:49:12 | INFO | ner_comparison |   FOT F1: 0.9610, FOT Precision: 0.9710, FOT Recall: 0.9511
+2025-10-26 10:49:12 | INFO | ner_comparison |   Speed: 234.69 samples/sec
+2025-10-26 10:49:12 | INFO | ner_comparison | ✓ patentNERpretrained complete: F1=0.9534, Precision=0.9611, Recall=0.9457
+2025-10-26 10:49:12 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 10:49:12 | INFO | ner_comparison | Model: BiLSTM-crf
+2025-10-26 10:49:12 | INFO | ner_comparison | Description: Baseline BiLSTM-CRF
+2025-10-26 10:49:12 | INFO | ner_comparison | ================================================================================
+2025-10-26 10:49:12 | INFO | ner_comparison | Creating BiLSTM-CRF model...
+2025-10-26 10:49:12 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/BiLSTM-crf_best_model.pth
+2025-10-26 10:49:12 | INFO | ner_comparison |   Loading weights and skipping training for BiLSTM-crf...
+2025-10-26 10:49:12 | INFO | ner_comparison |   Loaded model with validation F1: 0.2865
+2025-10-26 10:49:12 | INFO | ner_comparison | Evaluating BiLSTM-crf...
+2025-10-26 10:49:35 | INFO | ner_comparison | BiLSTM-crf Results:
+2025-10-26 10:49:35 | INFO | ner_comparison |   F1: 0.2187, Precision: 0.3546, Recall: 0.1581
+2025-10-26 10:49:35 | INFO | ner_comparison |   FOT F1: 0.3613, FOT Precision: 0.7133, FOT Recall: 0.2419
+2025-10-26 10:49:35 | INFO | ner_comparison |   Speed: 889.04 samples/sec
+2025-10-26 10:49:35 | INFO | ner_comparison | ✓ BiLSTM-crf complete: F1=0.2187, Precision=0.3546, Recall=0.1581
+2025-10-26 10:49:35 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 10:49:35 | INFO | ner_comparison | Model: bert-crf
+2025-10-26 10:49:35 | INFO | ner_comparison | Description: BERT-base + CRF
+2025-10-26 10:49:35 | INFO | ner_comparison | ================================================================================
+2025-10-26 10:49:35 | INFO | ner_comparison | Creating BERT-CRF model...
+2025-10-26 10:49:36 | INFO | ner_comparison | ✗ No existing model found at reports/models/bert-crf_best_model.pth
+2025-10-26 10:49:36 | INFO | ner_comparison |   Starting training bert-crf from scratch for 20 epochs...
+2025-10-26 10:56:55 | INFO | ner_comparison | Epoch 1/20 - Loss: -54.3221, Val F1: 0.4747
+2025-10-26 10:57:01 | INFO | ner_comparison | ✓ Saved best model with F1: 0.4747 at epoch 1
+2025-10-26 11:04:21 | INFO | ner_comparison | Epoch 2/20 - Loss: -152.6166, Val F1: 0.5034
+2025-10-26 11:04:35 | INFO | ner_comparison | ✓ Saved best model with F1: 0.5034 at epoch 2
+2025-10-26 11:11:56 | INFO | ner_comparison | Epoch 3/20 - Loss: -246.0933, Val F1: 0.4758
+2025-10-26 11:19:22 | INFO | ner_comparison | Epoch 4/20 - Loss: -394.5055, Val F1: 0.5379
+2025-10-26 11:19:36 | INFO | ner_comparison | ✓ Saved best model with F1: 0.5379 at epoch 4
+2025-10-26 11:26:55 | INFO | ner_comparison | Epoch 5/20 - Loss: -466.4837, Val F1: 0.4918
+2025-10-26 11:34:20 | INFO | ner_comparison | Epoch 6/20 - Loss: -620.2618, Val F1: 0.5048
+2025-10-26 11:41:40 | INFO | ner_comparison | Epoch 7/20 - Loss: -835.6405, Val F1: 0.5346
+2025-10-26 11:49:06 | INFO | ner_comparison | Epoch 8/20 - Loss: -1001.9246, Val F1: 0.5701
+2025-10-26 11:49:20 | INFO | ner_comparison | ✓ Saved best model with F1: 0.5701 at epoch 8
+2025-10-26 11:56:40 | INFO | ner_comparison | Epoch 9/20 - Loss: -1076.3156, Val F1: 0.5697
+2025-10-26 12:04:02 | INFO | ner_comparison | Epoch 10/20 - Loss: -1135.8563, Val F1: 0.5477
+2025-10-26 12:11:28 | INFO | ner_comparison | Epoch 11/20 - Loss: -1377.9856, Val F1: 0.5408
+2025-10-26 12:18:51 | INFO | ner_comparison | Epoch 12/20 - Loss: -1704.3849, Val F1: 0.5289
+2025-10-26 12:26:20 | INFO | ner_comparison | Epoch 13/20 - Loss: -2024.0620, Val F1: 0.5445
+2025-10-26 12:33:43 | INFO | ner_comparison | Epoch 14/20 - Loss: -2320.1395, Val F1: 0.5647
+2025-10-26 12:41:07 | INFO | ner_comparison | Epoch 15/20 - Loss: -2562.0162, Val F1: 0.5580
+2025-10-26 12:48:31 | INFO | ner_comparison | Epoch 16/20 - Loss: -2733.1488, Val F1: 0.5631
+2025-10-26 12:55:53 | INFO | ner_comparison | Epoch 17/20 - Loss: -2835.8445, Val F1: 0.5749
+2025-10-26 12:55:59 | INFO | ner_comparison | ✓ Saved best model with F1: 0.5749 at epoch 17
+2025-10-26 13:03:14 | INFO | ner_comparison | Epoch 18/20 - Loss: -2880.8799, Val F1: 0.5769
+2025-10-26 13:03:27 | INFO | ner_comparison | ✓ Saved best model with F1: 0.5769 at epoch 18
+2025-10-26 13:10:46 | INFO | ner_comparison | Epoch 19/20 - Loss: -2920.4405, Val F1: 0.4942
+2025-10-26 13:18:10 | INFO | ner_comparison | Epoch 20/20 - Loss: -3211.1193, Val F1: 0.5240
+2025-10-26 13:18:17 | INFO | ner_comparison | Loading best model from reports/models/bert-crf_best_model.pth
+2025-10-26 13:18:18 | INFO | ner_comparison | Loaded best model from epoch 18 with F1: 0.5769
+2025-10-26 13:18:18 | INFO | ner_comparison | Evaluating bert-crf...
+2025-10-26 13:18:53 | INFO | ner_comparison | bert-crf Results:
+2025-10-26 13:18:53 | INFO | ner_comparison |   F1: 0.6128, Precision: 0.7696, Recall: 0.5091
+2025-10-26 13:18:53 | INFO | ner_comparison |   FOT F1: 0.6503, FOT Precision: 0.8346, FOT Recall: 0.5327
+2025-10-26 13:18:53 | INFO | ner_comparison |   Speed: 578.06 samples/sec
+2025-10-26 13:18:53 | INFO | ner_comparison | ✓ bert-crf complete: F1=0.6128, Precision=0.7696, Recall=0.5091
+2025-10-26 13:18:53 | INFO | ner_comparison | 
+================================================================================
+2025-10-26 13:18:53 | INFO | ner_comparison | Model: scibert-crf
+2025-10-26 13:18:53 | INFO | ner_comparison | Description: SciBERT + CRF
+2025-10-26 13:18:53 | INFO | ner_comparison | ================================================================================
+2025-10-26 13:18:53 | INFO | ner_comparison | Creating SCIBERT-CRF model...
+2025-10-26 13:18:53 | INFO | ner_comparison | ✓ Found existing trained model: reports/models/scibert-crf_best_model.pth
+2025-10-26 13:18:53 | INFO | ner_comparison |   Loading weights and skipping training for scibert-crf...
+2025-10-26 13:18:54 | INFO | ner_comparison |   Loaded model with validation F1: 0.7099
+2025-10-26 13:18:54 | INFO | ner_comparison | Evaluating scibert-crf...
+2025-10-26 13:19:18 | INFO | ner_comparison | scibert-crf Results:
+2025-10-26 13:19:18 | INFO | ner_comparison |   F1: 0.7121, Precision: 0.7133, Recall: 0.7109
+2025-10-26 13:19:18 | INFO | ner_comparison |   FOT F1: 0.7551, FOT Precision: 0.7601, FOT Recall: 0.7502
+2025-10-26 13:19:18 | INFO | ner_comparison |   Speed: 863.36 samples/sec
+2025-10-26 13:19:18 | INFO | ner_comparison | ✓ scibert-crf complete: F1=0.7121, Precision=0.7133, Recall=0.7109
+2025-10-26 13:19:18 | INFO | ner_comparison | 
+Results saved to: reports/ner_comparison_results.json
+2025-10-26 13:19:18 | INFO | ner_comparison | ================================================================================
+2025-10-26 13:19:18 | INFO | ner_comparison | Comparison Experiments Complete
+2025-10-26 13:19:18 | INFO | ner_comparison | ================================================================================
+2025-10-26 13:19:18 | INFO | ner_comparison | 
+Final Results Summary:
+2025-10-26 13:19:18 | INFO | ner_comparison | Model                                F1  Precision   Recall      Speed
+2025-10-26 13:19:18 | INFO | ner_comparison | --------------------------------------------------------------------------------
+2025-10-26 13:19:18 | INFO | ner_comparison | patentNER                        0.7350     0.8101   0.6727     246.88
+2025-10-26 13:19:18 | INFO | ner_comparison | patentNERnopos                   0.7261     0.7823   0.6775     247.90
+2025-10-26 13:19:18 | INFO | ner_comparison | patentNER no customCRF           0.6781     0.7297   0.6333     784.00
+2025-10-26 13:19:18 | INFO | ner_comparison | patentNERnofocalloss             0.7285     0.7512   0.7072     247.14
+2025-10-26 13:19:18 | INFO | ner_comparison | patentNERnol2                    0.7346     0.7885   0.6877     247.86
+2025-10-26 13:19:18 | INFO | ner_comparison | patentNERpretrained              0.9534     0.9611   0.9457     234.69
+2025-10-26 13:19:18 | INFO | ner_comparison | BiLSTM-crf                       0.2187     0.3546   0.1581     889.04
+2025-10-26 13:19:18 | INFO | ner_comparison | bert-crf                         0.6128     0.7696   0.5091     578.06
+2025-10-26 13:19:18 | INFO | ner_comparison | scibert-crf                      0.7121     0.7133   0.7109     863.36
+2025-10-26 13:19:19 | INFO | ner_comparison | NER comparison complete. Results: {'patentNER': {'precision': 0.8100802854594112, 'recall': 0.6726666666666666, 'f1': 0.7350060704168352, 'loss': 5.816529206098136, 'confusion_matrix': [[228705, 1689, 1987], [4144, 9258, 98], [4502, 114, 10019]], 'fot_precision': 0.841312324627671, 'fot_recall': 0.6926959303358806, 'fot_f1': 0.7598050682261208, 'b_prec': 0.8369948467588826, 'p_match': 0.7200740740740741, 'type_cons': 0.7200740740740741, 'speed': 246.8838141500015, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.041919668960554}, 'patentNERnopos': {'precision': 0.782311179539817, 'recall': 0.6774814814814815, 'f1': 0.7261323488547498, 'loss': 4.280267731618073, 'confusion_matrix': [[228209, 1895, 2277], [4020, 9359, 121], [4338, 116, 10181]], 'fot_precision': 0.8257964841955823, 'fot_recall': 0.7029322907410699, 'fot_f1': 0.7594270793333845, 'b_prec': 0.8231310466138962, 'p_match': 0.7289629629629629, 'type_cons': 0.7289629629629629, 'speed': 247.89529096006206, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.0398593200468933}, 'patentNER no customCRF': {'precision': 0.7296858996244452, 'recall': 0.6332592592592593, 'f1': 0.6780615482233503, 'loss': -98.43933426161944, 'confusion_matrix': [[228218, 1791, 2372], [4660, 8735, 105], [4399, 155, 10081]], 'fot_precision': 0.820861482852102, 'fot_recall': 0.6780167051714946, 'fot_f1': 0.7426324599992215, 'b_prec': 0.8178073214118529, 'p_match': 0.6893333333333334, 'type_cons': 0.6893333333333334, 'speed': 784.0016219934574, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.0401485990511146}, 'patentNERnofocalloss': {'precision': 0.7511999370524824, 'recall': 0.7071851851851851, 'f1': 0.7285283681178222, 'loss': 3.9412534681417175, 'confusion_matrix': [[226906, 2522, 2953], [3571, 9779, 150], [3867, 152, 10616]], 'fot_precision': 0.7908069692801467, 'fot_recall': 0.7356317753687578, 'fot_f1': 0.7622221813025946, 'b_prec': 0.7852726250702642, 'p_match': 0.7705185185185185, 'type_cons': 0.7705185185185185, 'speed': 247.135483481092, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.0425430210325048}, 'patentNERnol2': {'precision': 0.7884501061571125, 'recall': 0.6877037037037037, 'f1': 0.7346389713155292, 'loss': 3.879427842366493, 'confusion_matrix': [[227923, 2067, 2391], [3864, 9504, 132], [4280, 133, 10222]], 'fot_precision': 0.81766125403902, 'fot_recall': 0.7105384752088146, 'fot_f1': 0.7603453521983874, 'b_prec': 0.8120300751879699, 'p_match': 0.7451851851851852, 'type_cons': 0.7451851851851852, 'speed': 247.86307840945764, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.044471975393028}, 'patentNERpretrained': {'precision': 0.961145703611457, 'recall': 0.9457174365886534, 'f1': 0.953369155703786, 'loss': 2.4160897329657853, 'confusion_matrix': [[479775, 653, 874], [1036, 23359, 88], [1591, 58, 27639]], 'fot_precision': 0.9710087144728599, 'fot_recall': 0.9511446690595302, 'fot_f1': 0.9609740515961744, 'b_prec': 0.9704611549646863, 'p_match': 0.9508638647224604, 'type_cons': 0.9508638647224604, 'speed': 234.68600960515036, 'true_fot_avg_length': 1.098735160097264, 'pred_fot_avg_length': 1.0948718481717836}, 'BiLSTM-crf': {'precision': 0.3545922604218568, 'recall': 0.15814814814814815, 'f1': 0.21873879411915376, 'loss': 4.930614930492337, 'confusion_matrix': [[229645, 1227, 1509], [11005, 2255, 240], [10323, 540, 3772]], 'fot_precision': 0.7132977051241748, 'fot_recall': 0.24194064332681714, 'fot_f1': 0.36132491108869896, 'b_prec': 0.5606663351566384, 'p_match': 0.21785185185185185, 'type_cons': 0.21785185185185185, 'speed': 889.0386525628422, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.0090937929575976}, 'bert-crf': {'precision': 0.7695666778636211, 'recall': 0.5091111111111111, 'f1': 0.6128126253845124, 'loss': -2794.958017743644, 'confusion_matrix': [[229411, 1450, 1520], [6246, 7149, 105], [6902, 145, 7588]], 'fot_precision': 0.83460488945815, 'fot_recall': 0.5326817131686511, 'fot_f1': 0.6503080794931876, 'b_prec': 0.8175892040256175, 'p_match': 0.5542962962962963, 'type_cons': 0.5542962962962963, 'speed': 578.0555830445286, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.0397197614498292}, 'scibert-crf': {'precision': 0.7132664437012263, 'recall': 0.7108888888888889, 'f1': 0.7120756816917083, 'loss': -234.92489779197564, 'confusion_matrix': [[225718, 3013, 3650], [3370, 9943, 187], [3659, 203, 10773]], 'fot_precision': 0.7600561777521697, 'fot_recall': 0.7501688288608495, 'fot_f1': 0.7550801373783629, 'b_prec': 0.7556045292195456, 'p_match': 0.7748148148148148, 'type_cons': 0.7748148148148148, 'speed': 863.3630610695133, 'true_fot_avg_length': 1.0423844985365491, 'pred_fot_avg_length': 1.0545723834118184}}

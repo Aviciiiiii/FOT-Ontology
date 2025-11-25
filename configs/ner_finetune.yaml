@@ -1,0 +1,196 @@
+# NER Fine-tuning Configuration
+# Configuration for fine-tuning pre-trained NER models with conservative learning rates
+
+model:
+  type: "scibert"  # "scibert" | "distilbert"
+  pretrained_name: "scibert-scivocab-uncased"
+  base_model_path: null  # Path to pre-trained base model (auto-detected)
+  max_len: 128
+  dropout: 0.1
+  hidden_size: 768
+  lstm_hidden_dim: 256
+  lstm_num_layers: 2
+  lstm_dropout: 0.1
+  bidirectional: true
+  num_hidden_layers: 4
+  last_k_layers: 4
+
+# Fine-tuning specific settings
+finetune:
+  conservative_lr: true  # Use conservative learning rates for fine-tuning
+  entity_aware_processing: true  # Process entities with special handling
+  load_pretrained_weights: true
+  freeze_layers:
+    bert_layers: []  # List of BERT layer indices to freeze (empty = none)
+    lstm_layers: false  # Whether to freeze LSTM layers
+    crf_layer: false   # Whether to freeze CRF layer
+
+# CRF Configuration (inherited from base model)
+crf:
+  constraint_mode: "full"  # "full" | "simple" | "none"
+  pos_aware_loss: true
+  pos_weight: 0.5
+  constraint_rules:
+    b_to_i_encouragement: true      # Rule 1: B-FOT -> I-FOT transitions
+    pos_noun_bias: true             # Rule 2: Noun POS tags favor FOT entities
+    pos_verb_penalty: true          # Rule 3: Verb POS tags penalize FOT entities
+    consecutive_penalty: true       # Rule 4: Penalize consecutive B-FOT tags
+    sentence_start_bonus: true      # Rule 5: Bonus for FOT at sentence start
+    long_entity_bonus: true         # Rule 6: Bonus for longer FOT entities
+    context_consistency: true       # Rule 7: Context-aware consistency
+
+# Loss Function Configuration
+loss:
+  primary: "combined"  # "crf" | "focal" | "combined"
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  fot_weight: 1.0
+  l2_lambda: 1e-6
+  use_focal: true
+  weights:
+    crf_loss: 1.0
+    focal_loss: 0.1  # focal_coef from original
+    constraint_loss: 0.5  # coef from original
+    l2_regularization: 0.1
+  rule_loss:
+    w_oi: 0.9
+    w_bi_break: 0.5
+    w_i_bad_prev: 0.9
+    w_bad_pos: 0.8
+    w_no_seq_fot: 2.0
+    coef: 0.5
+    focal_coef: 0.1
+
+# Training Parameters (Conservative for fine-tuning)
+training:
+  batch_size: 8
+  epochs: 3  # Fewer epochs for fine-tuning
+  learning_rate: 1e-5  # Conservative LR for fine-tuning
+  weight_decay: 0.01
+  warmup_ratio: 0.0
+  warmup_steps: 0
+  gradient_clip_norm: 1.0
+  accumulate_steps: 1
+  use_amp: true
+  early_stopping:
+    enabled: true
+    patience: 3  # early_stop_patience from original
+    min_delta: 0.001
+    monitor: "val_f1"
+  scheduler:
+    type: "cosine"  # Based on T_0, T_mult, eta_min
+    T_0: 5
+    T_mult: 2
+    eta_min: 1e-6
+
+# Dataset Configuration
+dataset:
+  train_path: null  # Set at runtime
+  val_path: null    # Set at runtime
+  test_path: null   # Set at runtime
+  add_pos_tags: true
+  pos_batch_size: 1000
+  pos_num_processes: 6
+  balanced_sampling:
+    enabled: false  # dynamic: false from original
+    initial_positive_ratio: 0.5
+    final_positive_ratio: 0.3
+    negative_ratio: 2
+
+# Data Processing (Entity-aware for fine-tuning)
+preprocessing:
+  unicode_normalization: true
+  contraction_expansion: true
+  special_token_handling: true
+  max_token_length: 50
+  entity_aware:
+    enabled: true
+    preserve_entity_boundaries: true
+    entity_augmentation: false  # Disable augmentation in fine-tuning
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "precision"
+    - "recall"
+    - "f1"
+    - "accuracy"
+    - "confusion_matrix"
+    - "fot_length_distribution"
+  class_names: ["O", "B-FOT", "I-FOT"]
+  average: "weighted"
+  zero_division: 0
+  eval_every_n_steps: 0  # From original
+  detailed_entity_analysis: true  # More detailed analysis for fine-tuning
+
+# Visualization
+visualization:
+  enabled: true
+  plot_training: true
+  plot_confusion_matrix: true
+  plot_fot_distribution: true
+  plot_before_after: true  # Compare before/after fine-tuning
+  save_plots: true
+  plot_interval: 1  # epochs
+  figsize: [12, 8]
+
+# Checkpointing
+checkpointing:
+  enabled: true
+  save_best_only: true
+  save_interval: 1  # epochs
+  max_checkpoints: 3  # Fewer checkpoints for fine-tuning
+  resume_from_checkpoint: null
+  save_optimizer_state: true
+
+# Logging
+logging:
+  level: "INFO"
+  log_interval: 50  # More frequent logging for fine-tuning
+  save_logs: true
+  log_model_changes: true  # Log parameter changes during fine-tuning
+  wandb:
+    enabled: false
+    project: "fot-ner-finetune"
+    name: null  # Auto-generated
+
+# Hardware Configuration
+hardware:
+  device: "auto"  # "auto" | "cpu" | "cuda"
+  num_workers: 4
+  pin_memory: true
+  mixed_precision: true  # use_amp from original
+
+# Paths
+paths:
+  output_dir: "artifacts/models"
+  checkpoint_dir: "artifacts/checkpoints/finetune"
+  logs_dir: "artifacts/logs/finetune"
+  plots_dir: "artifacts/plots/finetune"
+
+# Tag Mappings (Inherited from base model)
+tags:
+  tag2idx:
+    "O": 0
+    "B-FOT": 1
+    "I-FOT": 2
+  idx2tag:
+    0: "O"
+    1: "B-FOT"
+    2: "I-FOT"
+
+# Advanced Configuration
+advanced:
+  freeze_bert_layers: 0  # Number of BERT layers to freeze (0 = none)
+  gradient_accumulation_steps: 1
+  fp16: false
+  dataloader_pin_memory: true
+  seed: 42
+  deterministic: true
+
+# Fine-tuning specific monitoring
+monitoring:
+  track_parameter_changes: true
+  track_gradient_norms: true
+  compare_with_base_model: true
+  entity_performance_tracking: true

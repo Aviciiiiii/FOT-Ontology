@@ -1,0 +1,56 @@
+# BigQuery and GCS Configuration for Patent Data Pipeline
+
+bigquery:
+  project_id: "fot-search"
+  dataset_id: "patents-public-data.patents"
+  table_id: "publications_202310"
+  selected_fields:
+    - "publication_number"
+    - "title_localized.text"
+    - "title_localized.language"
+    - "ipc.code"
+
+gcs:
+  bucket: "fot-bucket"
+  export_path: "exports/patents/"
+  filename_pattern: "data_export_*.csv"
+
+auth:
+  # Path to Google Cloud service account JSON credentials
+  # Set this to your actual credentials file path or use environment variable GOOGLE_APPLICATION_CREDENTIALS
+  credentials_path: null  # e.g., "/path/to/fot-search-0825c9f1b0f4.json"
+
+  # SOCKS5 proxy configuration (set use_proxy to false if not needed)
+  use_proxy: false
+  proxy_host: "127.0.0.1"
+  proxy_port: 7778
+
+output:
+  raw_patents_dir: "data/raw_patents/"
+
+# Processing configuration
+processing:
+  # Timeout for BigQuery job polling (seconds)
+  job_poll_interval: 10
+  job_timeout: 3600
+
+  # Download configuration
+  chunk_size_mb: 1
+  show_progress: true
+
+  # CSV processing configuration
+  # Title-based deduplication: same title shares same patent_id
+  enable_deduplication: true
+
+  # Data aggregation: multiple publication_numbers and IPC codes per patent
+  enable_aggregation: true
+
+  # Large-scale processing: use temporary files (auto-detect if null)
+  # Set to true for datasets > 100MB, false for smaller datasets
+  use_temp_files: null  # Auto-detect based on file size
+
+  # Batch size for merging temporary files
+  batch_size: 100000
+
+  # Progress reporting interval (log every N rows, 0 to disable)
+  progress_interval: 10000

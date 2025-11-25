@@ -1,0 +1,92 @@
+# FOT Extraction Configuration
+# Controls how Field of Technology (FOT) entities are extracted from patent titles
+
+# Processing mode
+mode: "ner"  # "simple" | "ner"
+# - simple: Fast pseudo-FOT extraction (first 2 words) for dry-run/testing
+# - ner: Full NER-based extraction using trained BertBiLSTMCRF model
+
+# NER Model Configuration (used when mode="ner")
+ner_model:
+  # Path to trained NER model checkpoint
+  model_path: "artifacts/models/NER_finetune_model_best.pth"
+
+  # Model parameters
+  batch_size: 128
+  max_len: 48
+
+  # GPU acceleration
+  use_gpu: true
+  use_amp: true  # Automatic Mixed Precision (reduces memory, increases speed)
+
+  # Chunk processing
+  num_chunks: 20
+  save_checkpoints: true
+  checkpoint_dir: "artifacts/chunks/checkpoints"
+
+# SpaCy Models (for POS tagging and lemmatization)
+spacy:
+  large_model: "en_core_web_lg"  # Used in dataset preprocessing
+  small_model: "en_core_web_sm"  # Used in FOT extraction
+
+# POS (Part-of-Speech) Weights for CRF
+# Higher weights encourage FOT tagging for these POS tags
+pos_weights:
+  NOUN: 1.3
+  PROPN: 1.3
+  ADJ: 1.1
+  VERB: 0.9
+  NUM: 0.8
+  ADP: 0.6
+  DET: 0.5
+  CCONJ: 0.6
+  PART: 0.6
+  PRON: 0.5
+  AUX: 0.5
+  ADV: 0.7
+  SCONJ: 0.6
+  INTJ: 0.4
+  SYM: 0.7
+  X: 0.8
+
+# Chunk Merge Configuration
+merge:
+  # Third layer static entity file for deduplication
+  # This file contains FOT entities from the static ontology layer (IPC + Wikipedia)
+  third_layer_file: "data/interim/fot_level_3.txt"
+
+  # Number of chunks to merge (null = all chunks)
+  num_chunks: 20
+
+  # FOT name cleaning
+  clean_names: true  # Remove 39s/39 suffixes and patent numbers
+
+  # IPC code aggregation
+  aggregate_ipc: true  # Merge IPC codes for same-name FOTs
+
+  # FOT ID reindexing
+  reindex_from_third_layer: true  # Start IDs from max(third_layer_id) + 1
+
+# Hierarchy Construction Configuration
+# Dynamic FOT hierarchy with layer assignment (L4/L5/L6) and parent linking
+hierarchy:
+  # Enable/disable hierarchy construction in Stage 3 pipeline
+  enabled: false  # Set to true to build hierarchy after chunk merge
+
+  # Note: When enabled, hierarchy requires:
+  # - Static layer files from Stage 1 (fot_level_3.txt)
+  # - Merged FOT mapping from chunk merge (used as input)
+  # - SciBERT model for embeddings (files/scibert_scivocab_uncased)
+  #
+  # Hierarchy settings are configured in configs/hierarchy.yaml
+  # Run separately via: python -m fot.cli build-hierarchy --config-dir configs
+
+# Output paths
+outputs:
+  raw_patents_dir: "data/raw_patents"
+  titles: "data/processed/titles.txt"
+  publication_numbers: "data/processed/publication_number.txt"
+  ipc_codes: "data/processed/ipc_codes.txt"
+  chunks_dir: "artifacts/chunks"
+  merged_fot_mapping: "data/processed/new_total_merged_fot_mapping.txt"
+  merged_patent_fot: "data/processed/new_total_merged_patent_title_with_FOT.txt"
