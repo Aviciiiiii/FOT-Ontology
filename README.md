@@ -7,7 +7,7 @@
 [](https://www.python.org/downloads/)
 [](https://www.google.com/search?q=LICENSE)
 [](https://www.google.com/search?q=https://huggingface.co/datasets/tim-berg/fot-storage-dataset)
-
+--------------------------------------------------------------------------------
 **FOT-Ontology** is a comprehensive, end-to-end pipeline for constructing a large-scale, multi-layered **Field of Technology (FOT)** ontology. By combining static knowledge bases with dynamic entity extraction from massive patent datasets, this project addresses the limitations of traditional classification systems in capturing emerging and interdisciplinary technologies.
 
 ## 🚀 Key Features
