@@ -145,42 +145,6 @@ def cmd_data_merge(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_data_build_exp(args: argparse.Namespace) -> int:
-    os.environ["FOT_CONFIG_DIR"] = args.config_dir
-    pathutil.set_config_dir(args.config_dir)
-    logger = logutil.get_logger("data_build_exp", level=args.log_level, to_file=args.log_to_file)
-    logger.info("Args: %s", vars(args))
-    cfg = _load_data_cfg(args.config_dir)
-    from .data.build_exp_dataset import run as stage_run
-
-    result = stage_run(cfg, dry_run=args.dry_run, fast=args.fast)
-    logger.info("Artifacts: %s", result)
-    print(result)
-    return 0
-
-
-def cmd_data_simulate_history(args: argparse.Namespace) -> int:
-    os.environ["FOT_CONFIG_DIR"] = args.config_dir
-    pathutil.set_config_dir(args.config_dir)
-    logger = logutil.get_logger("data_simulate_history", level=args.log_level, to_file=args.log_to_file)
-    logger.info("Args: %s", vars(args))
-    cfg = _load_data_cfg(args.config_dir)
-    from .data.simulate_user_history import run as stage_run
-
-    result = stage_run(cfg, dry_run=args.dry_run, fast=args.fast)
-    logger.info("Artifacts: %s", result)
-    print(result)
-    return 0
-
-
-def cmd_recsys(args: argparse.Namespace) -> int:
-    os.environ["FOT_CONFIG_DIR"] = args.config_dir
-    pathutil.set_config_dir(args.config_dir)
-    logger = logutil.get_logger("recsys", level=args.log_level, to_file=args.log_to_file)
-    logger.info("Args: %s", vars(args))
-    logger.info("TODO: not implemented yet")
-    return 0
-
 
 def cmd_build_hierarchy(args: argparse.Namespace) -> int:
     """Build dynamic FOT hierarchy with layer assignment and parent linking."""
@@ -327,25 +291,12 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_args(p4)
     p4.set_defaults(func=cmd_extract_fot)
 
-    p5 = sub.add_parser("build-exp", help="Build experiment datasets and user simulation")
-    _add_common_args(p5)
-    p5.set_defaults(func=cmd_build_exp)
-
-    p6 = sub.add_parser("recsys", help="Train/evaluate recommender components")
-    _add_common_args(p6)
-    p6.set_defaults(func=cmd_recsys)
-
     p7 = sub.add_parser("build-patents-fot", help="Build patents ETL + FOT extraction (Stage 3)")
     _add_common_args(p7)
     p7.add_argument("--dry-run", action="store_true", help="Run with synthetic CSV and no models")
     p7.add_argument("--fast", action="store_true", help="Reduce work for smoke runs")
     p7.set_defaults(func=cmd_build_patents_fot)
 
-    p8 = sub.add_parser("build-exp-dataset", help="Build experiment dataset and recommender stubs (Stage 4)")
-    _add_common_args(p8)
-    p8.add_argument("--dry-run", action="store_true", help="Run with minimal stubs")
-    p8.add_argument("--fast", action="store_true", help="Reduce work for smoke runs")
-    p8.set_defaults(func=cmd_build_exp_dataset)
 
     p9 = sub.add_parser("run-all", help="Run all stages (1→2→3→4) with a single run_id")
     _add_common_args(p9)
@@ -370,8 +321,6 @@ def build_parser() -> argparse.ArgumentParser:
         ("data-process-patent", cmd_data_process_patent),
         ("data-generate-fot", cmd_data_generate_fot),
         ("data-merge", cmd_data_merge),
-        ("data-build-exp", cmd_data_build_exp),
-        ("data-simulate-history", cmd_data_simulate_history),
     ]:
         p = sub.add_parser(name, help=f"M4 data pipeline step: {name.replace('-', ' ')}")
         _add_common_args(p)
@@ -448,16 +397,6 @@ def cmd_run_all(args: argparse.Namespace) -> int:
         results.update({f"stage3.{k}": v for k, v in r3.items()})
         sizes.update({k: v for k, v in r3.items() if k.endswith("_kb")})
 
-        ext_cfg = load_cfg("extraction.yaml")
-        inputs = {
-            "merged_fot_mapping": ext_cfg.get("outputs", {}).get("merged_fot_mapping", "data/processed/new_total_merged_fot_mapping.txt"),
-            "merged_patent_fot": ext_cfg.get("outputs", {}).get("merged_patent_fot", "data/processed/new_total_merged_patent_title_with_FOT.txt"),
-            "ipc_codes": ext_cfg.get("outputs", {}).get("ipc_codes", "data/processed/ipc_codes.txt"),
-        }
-        r4 = stage4_run(load_cfg("recsys.yaml"), dry_run=args.dry_run, fast=args.fast, inputs=inputs, run_id=run_id)
-        ok["stage4"] = 1 if r4.get("validation_ok", True) else 0
-        results.update({f"stage4.{k}": v for k, v in r4.items()})
-        sizes.update({k: v for k, v in r4.items() if k.endswith("_kb")})
     except Exception as e:
         logger.exception("Pipeline failed: %s", e)
 
@@ -468,7 +407,7 @@ def cmd_run_all(args: argparse.Namespace) -> int:
         p = Path("reports") / "RUNS.md"
         p.parent.mkdir(parents=True, exist_ok=True)
         if not p.exists() or p.stat().st_size == 0:
-            p.write_text("run_id,utc_time,stage1_ok,stage2_ok,stage3_ok,stage4_ok,sizes_json\n", encoding="utf-8")
+            p.write_text("run_id,utc_time,stage1_ok,stage2_ok,stage3_ok,sizes_json\n", encoding="utf-8")
         line = f"{run_id},{_dt.utcnow().isoformat()}Z,{ok['stage1']},{ok['stage2']},{ok['stage3']},{ok['stage4']},{_json.dumps(sizes)}\n"
         with p.open("a", encoding="utf-8") as f:
             f.write(line)
