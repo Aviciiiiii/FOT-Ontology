@@ -1,6 +1,6 @@
 <div align="center">
   <img src="FOT-Ontology-logo.webp" alt="FOT-Ontology Logo" width="300">
---------------------------------------------------------------------------------
+
   # FOT-Ontology: Patent Field of Technology Ontology Construction
 </div>
 
