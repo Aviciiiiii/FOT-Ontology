@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="FOT-Ontology-logo.png" alt="FOT-Ontology Logo" width="400">
+  <img src="FOT-Ontology-logo.webg" alt="FOT-Ontology Logo" width="400">
 
   # FOT-Ontology: Patent Field of Technology Ontology Construction
 </div>
