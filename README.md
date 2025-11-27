@@ -1,8 +1,15 @@
 <div align="center">
   <img src="FOT-Ontology-logo.webp" alt="FOT-Ontology Logo" width="300">
-
-  # FOT-Ontology: Patent Field of Technology Ontology Construction
 </div>
+
+---
+
+<div align="center">
+
+# FOT-Ontology: Patent Field of Technology Ontology Construction
+
+</div>
+
 
 [](https://www.python.org/downloads/)
 [](https://www.google.com/search?q=LICENSE)
